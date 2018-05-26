@@ -6,12 +6,12 @@ import (
 	"flag"
 	"log"
 	"net/url"
-	
+
 	"github.com/vmware/govmomi"
-	//"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/soap"
 	
 	db "github.com/sak0/vmw2os/db"
+	httpapi "github.com/sak0/vmw2os/api"
 )
 
 var urlFlag = flag.String("url", "administrator@vsphere.local:ZXCVbnm,@172.16.70.19", "url info")
@@ -25,6 +25,8 @@ const (
 	dbip     = "172.16.0.22"
 	dbpass   = "huacloud"
 	dbport	 = "3306"
+	
+	srvport  = 8888
 )
 
 func NewClient(ctx context.Context, u *url.URL) (*govmomi.Client, error) {
@@ -55,8 +57,19 @@ func main(){
 		fmt.Printf("Got client: %v\n", c)
 	}
 		
-	GetHosts(ctx, c)
-	GetNetworks(ctx, c)
+	//GetHosts(ctx, c)
+	//GetNetworks(ctx, c)
+	
+	
+	vminfo := NewInfoVMware("test", ctx, c)
+	
+	var cmd = CmdInterface{}
+	vminfo.AddReceiver(&cmd)
+	
+	vminfo.BroadCast()
+	
+	cmd.Display()
+	
 	
 	mc := db.MysqlConfig{
 		Host 	 : dbip,
@@ -80,4 +93,7 @@ func main(){
 	var clusters []Cluster
 	database.Select("*").From("cluster").Load(&clusters)
 	fmt.Printf("%v\n", clusters)
+	
+	srv := httpapi.NewServer(srvport)
+	srv.Run()
 }
