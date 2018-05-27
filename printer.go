@@ -13,9 +13,8 @@ type CmdInterface struct{
 	Hosts []mo.HostSystem
 }
 
-func (cmd *CmdInterface)Update(hss []mo.HostSystem)error{
+func (cmd *CmdInterface)Update(hss []mo.HostSystem){
 	cmd.Hosts = hss
-	return nil
 }
 
 func (cmd *CmdInterface)Display(){

@@ -18,7 +18,7 @@ type Publisher interface{
 }
 
 type Receiver interface{
-	Update(hss []mo.HostSystem)error
+	Update(hss []mo.HostSystem)
 }
 
 type Printer interface{

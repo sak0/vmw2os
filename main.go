@@ -59,18 +59,7 @@ func main(){
 		
 	//GetHosts(ctx, c)
 	//GetNetworks(ctx, c)
-	
-	
-	vminfo := NewInfoVMware("test", ctx, c)
-	
-	var cmd = CmdInterface{}
-	vminfo.AddReceiver(&cmd)
-	
-	vminfo.BroadCast()
-	
-	cmd.Display()
-	
-	
+		
 	mc := db.MysqlConfig{
 		Host 	 : dbip,
 		Password : dbpass,
@@ -94,6 +83,16 @@ func main(){
 	database.Select("*").From("cluster").Load(&clusters)
 	fmt.Printf("%v\n", clusters)
 	
+	vminfo := NewInfoVMware("test", ctx, c)
+	
+	var cmd = CmdInterface{}
 	srv := httpapi.NewServer(srvport)
+	
+	vminfo.AddReceiver(&cmd)
+	vminfo.AddReceiver(srv)
+	
+	vminfo.BroadCast()
+	
+	cmd.Display()
 	srv.Run()
 }
