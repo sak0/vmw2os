@@ -11,10 +11,12 @@ import (
 
 type CmdInterface struct{
 	Hosts []mo.HostSystem
+	Nets  []mo.Network
 }
 
-func (cmd *CmdInterface)Update(hss []mo.HostSystem){
+func (cmd *CmdInterface)Update(hss []mo.HostSystem, nets []mo.Network){
 	cmd.Hosts = hss
+	cmd.Nets  = nets
 }
 
 func (cmd *CmdInterface)Display(){
@@ -30,7 +32,13 @@ func (cmd *CmdInterface)Display(){
 		fmt.Fprintf(tw, "%d\t", freeCPU)
 		fmt.Fprintf(tw, "%d\t", units.ByteSize(hs.Summary.QuickStats.OverallMemoryUsage))
 		fmt.Fprintf(tw, "%d\t", units.ByteSize(hs.Summary.Hardware.MemorySize) / 1024 / 1024)
-		fmt.Fprintf(tw, "%d\t\n", units.ByteSize(freeMemory) / 1024 / 1024)
+		fmt.Fprintf(tw, "%d\t", units.ByteSize(freeMemory) / 1024 / 1024)
+		fmt.Fprintf(tw, "\n")
+		if hs.Config != nil && hs.Config.Network != nil {
+			for _, pg := range hs.Config.Network.Portgroup {
+				fmt.Fprintf(tw, "%s - %s\n", pg.Key, pg.Vswitch)
+			}
+		}
 	}
 	_ = tw.Flush()
 }

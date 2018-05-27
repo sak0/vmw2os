@@ -58,8 +58,9 @@ func main(){
 	}
 		
 	//GetHosts(ctx, c)
-	//GetNetworks(ctx, c)
-		
+	GetHostNetwork(ctx, c)
+	
+	/*Use mysql data*/	
 	mc := db.MysqlConfig{
 		Host 	 : dbip,
 		Password : dbpass,
@@ -83,6 +84,9 @@ func main(){
 	database.Select("*").From("cluster").Load(&clusters)
 	fmt.Printf("%v\n", clusters)
 	
+	
+	/* Publisher:  vminfo
+	   Subscriber: cmd, srv */  
 	vminfo := NewInfoVMware("test", ctx, c)
 	
 	var cmd = CmdInterface{}

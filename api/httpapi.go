@@ -14,6 +14,7 @@ import (
 type Server struct {
 	port	int
 	Vchosts []mo.HostSystem
+	Vcnets  []mo.Network
 }
 
 func NewServer(port int)*Server{
@@ -26,8 +27,9 @@ func (s *Server)TestFunc(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintf(w, "Visit test link from %s\n", r.RemoteAddr)
 }
 
-func (s *Server)Update(hss []mo.HostSystem){
+func (s *Server)Update(hss []mo.HostSystem, nets []mo.Network){
 	s.Vchosts = hss
+	s.Vcnets  = nets
 }
 
 func (s *Server)HostsFunc(w http.ResponseWriter, r *http.Request){
@@ -38,7 +40,7 @@ func (s *Server)HostsFunc(w http.ResponseWriter, r *http.Request){
 	}
 	
 	tw := new(tabwriter.Writer).Init(w, 0, 8, 2, ' ', 0)
-	fmt.Fprintf(w, "Name:\t\tUsed CPU:\t\tTotal CPU:\t\tFree CPU:\t\tUsed Memory:\t\tTotal Memory:\t\tFree Memory:\t\t\n")
+	fmt.Fprintf(tw, "Name:\tUsed CPU:\tTotal CPU:\tFree CPU:\tUsed Memory:\tTotal Memory:\tFree Memory:\t\n")
 	for _, hs := range s.Vchosts {
 		totalCPU := int64(hs.Summary.Hardware.CpuMhz) * int64(hs.Summary.Hardware.NumCpuCores)
 		freeCPU := int64(totalCPU) - int64(hs.Summary.QuickStats.OverallCpuUsage)
@@ -58,5 +60,6 @@ func (s *Server)Run(){
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test", http.HandlerFunc(s.TestFunc))
 	mux.HandleFunc("/hosts", http.HandlerFunc(s.HostsFunc))
+	//mux.HandleFunc("/nets", http.HandlerFunc(s.NetsFunc))
 	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(s.port), mux))
 }

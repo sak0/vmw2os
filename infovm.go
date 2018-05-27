@@ -18,7 +18,7 @@ type Publisher interface{
 }
 
 type Receiver interface{
-	Update(hss []mo.HostSystem)
+	Update(hss []mo.HostSystem, nets []mo.Network)
 }
 
 type Printer interface{
@@ -50,8 +50,10 @@ func (info *InfoVMware)BroadCast(){
 	if err != nil {
 		log.Fatal(err)
 	}
+	networks, err := info.GetNetworks(info.ctx, info.client)
+	
 	for _, receiver := range info.receivers {
-		receiver.Update(hss)
+		receiver.Update(hss, networks)
 	}
 }
 
@@ -67,10 +69,28 @@ func (info *InfoVMware)GetHosts(ctx context.Context, c *govmomi.Client)([]mo.Hos
 	var hss []mo.HostSystem
 	fmt.Printf("Got hosts...\n")
 	err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"summary"}, &hss)
+	//err = v.Retrieve(ctx, []string{"HostSystem"}, nil, &hss)
 	if err != nil {
 		return nil, err
 	}
 	return hss, nil
+}
+
+func (info *InfoVMware)GetNetworks(ctx context.Context, c *govmomi.Client)([]mo.Network, error){
+	m := view.NewManager(c.Client)
+	v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"Network"}, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer v.Destroy(ctx)
+	
+	var networks []mo.Network
+	err = v.Retrieve(ctx, []string{"Network"}, nil, &networks)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	return networks, nil
 }
 
 func NewInfoVMware(name string, ctx context.Context, client *govmomi.Client)*InfoVMware{
