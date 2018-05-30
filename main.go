@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log"
 	"net/url"
+	"time"
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25/soap"
@@ -14,7 +15,10 @@ import (
 	httpapi "github.com/sak0/vmw2os/api"
 )
 
-var urlFlag = flag.String("url", "administrator@vsphere.local:ZXCVbnm,@172.16.70.19", "url info")
+var (
+	urlFlag = flag.String("url", "administrator@vsphere.local:ZXCVbnm,@172.16.70.19", "url info.")
+	period  = flag.Duration("period", 30 * time.Second, "time period for collect vmware info.")
+)
 
 const (
 	ipaddr   = "172.16.70.19"
@@ -87,15 +91,14 @@ func main(){
 	
 	/* Publisher:  vminfo
 	   Subscriber: cmd, srv */  
-	vminfo := NewInfoVMware("test", ctx, c)
+	vminfo := NewInfoVMware("test", ctx, c, *period)
 	
 	var cmd = CmdInterface{}
 	srv := httpapi.NewServer(srvport)
 	
 	vminfo.AddReceiver(&cmd)
 	vminfo.AddReceiver(srv)
-	
-	vminfo.BroadCast()
+	vminfo.Run()
 	
 	cmd.Display()
 	srv.Run()
