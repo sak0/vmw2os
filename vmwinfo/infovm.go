@@ -1,4 +1,4 @@
-package main
+package vmwinfo
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type Publisher interface{
 }
 
 type Receiver interface{
-	Update(hss []mo.HostSystem, nets []mo.Network)
+	Update(Info)
 }
 
 type Printer interface{
@@ -55,15 +55,6 @@ func (info *InfoVMware)RemoveReceiver(r Receiver){
 }
 
 func (info *InfoVMware)BroadCast(){
-	hss, err := info.GetHosts(info.ctx, info.client)
-	if err != nil {
-		log.Fatal(err)
-	}
-	networks, err := info.GetNetworks(info.ctx, info.client)
-	
-	for _, receiver := range info.receivers {
-		receiver.Update(hss, networks)
-	}
 }
 
 func (info *InfoVMware)GetHosts(ctx context.Context, c *govmomi.Client)([]mo.HostSystem, error){
@@ -139,7 +130,7 @@ func (info *InfoVMware)Run(){
 				case packet := <-info.updateC:
 					fmt.Printf("<RunLoop %v>Receive hosts and networks update info.\n", time.Now())
 					for _, receiver := range info.receivers {
-						receiver.Update(packet.Hosts, packet.Nets)
+						receiver.Update(packet)
 					}
 				case <-info.stopC:
 					return	

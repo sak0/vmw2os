@@ -9,6 +9,8 @@ import (
 	
 	"github.com/vmware/govmomi/units"
 	"github.com/vmware/govmomi/vim25/mo"
+	
+	vmwinfo "github.com/sak0/vmw2os/vmwinfo"
 )
 
 type Server struct {
@@ -27,9 +29,9 @@ func (s *Server)TestFunc(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintf(w, "Visit test link from %s\n", r.RemoteAddr)
 }
 
-func (s *Server)Update(hss []mo.HostSystem, nets []mo.Network){
-	s.Vchosts = hss
-	s.Vcnets  = nets
+func (s *Server)Update(info vmwinfo.Info){
+	s.Vchosts = info.Hosts
+	s.Vcnets  = info.Nets
 }
 
 func (s *Server)HostsFunc(w http.ResponseWriter, r *http.Request){

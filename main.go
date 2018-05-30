@@ -13,6 +13,7 @@ import (
 	
 	db "github.com/sak0/vmw2os/db"
 	httpapi "github.com/sak0/vmw2os/api"
+	vmwinfo "github.com/sak0/vmw2os/vmwinfo"
 )
 
 var (
@@ -91,7 +92,7 @@ func main(){
 	
 	/* Publisher:  vminfo
 	   Subscriber: cmd, srv */  
-	vminfo := NewInfoVMware("test", ctx, c, *period)
+	vminfo := vmwinfo.NewInfoVMware("test", ctx, c, *period)
 	
 	var cmd = CmdInterface{}
 	srv := httpapi.NewServer(srvport)

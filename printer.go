@@ -7,6 +7,8 @@ import (
 	
 	"github.com/vmware/govmomi/units"
 	"github.com/vmware/govmomi/vim25/mo"
+	
+	vmwinfo "github.com/sak0/vmw2os/vmwinfo"
 )
 
 type CmdInterface struct{
@@ -14,9 +16,9 @@ type CmdInterface struct{
 	Nets  []mo.Network
 }
 
-func (cmd *CmdInterface)Update(hss []mo.HostSystem, nets []mo.Network){
-	cmd.Hosts = hss
-	cmd.Nets  = nets
+func (cmd *CmdInterface)Update(info vmwinfo.Info){
+	cmd.Hosts = info.Hosts
+	cmd.Nets  = info.Nets
 }
 
 func (cmd *CmdInterface)Display(){
