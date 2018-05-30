@@ -58,7 +58,7 @@ func main(){
 	}
 		
 	//GetHosts(ctx, c)
-	GetHostNetwork(ctx, c)
+	//GetHostNetwork(ctx, c)
 	
 	/*Use mysql data*/	
 	mc := db.MysqlConfig{
@@ -82,7 +82,7 @@ func main(){
 	}
 	var clusters []Cluster
 	database.Select("*").From("cluster").Load(&clusters)
-	fmt.Printf("%v\n", clusters)
+	fmt.Printf("From database %v\n", clusters)
 	
 	
 	/* Publisher:  vminfo

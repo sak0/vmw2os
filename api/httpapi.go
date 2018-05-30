@@ -56,10 +56,32 @@ func (s *Server)HostsFunc(w http.ResponseWriter, r *http.Request){
 	tw.Flush()
 }
 
+func (s *Server)PortGroupsFunc(w http.ResponseWriter, r *http.Request){
+	if s.Vchosts == nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "There is no hosts collected yet.")
+		return
+	}
+	tw := new(tabwriter.Writer).Init(w, 0, 8, 2, ' ', 0)
+	fmt.Fprintf(tw, "Host:\tName:\tVswtich:\tVlanId:\t\n")
+	for _, host := range s.Vchosts{
+		pgs := host.Config.Network.Portgroup
+		for _, pg := range pgs {
+			fmt.Fprintf(tw, "%s\t", host.Summary.Config.Name)
+			fmt.Fprintf(tw, "%s\t", pg.Spec.Name)
+			fmt.Fprintf(tw, "%s\t", pg.Spec.VswitchName)
+			fmt.Fprintf(tw,"%d\t", pg.Spec.VlanId)
+			fmt.Fprintf(tw, "\n")
+		}
+	}
+	tw.Flush()
+}
+
 func (s *Server)Run(){
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test", http.HandlerFunc(s.TestFunc))
 	mux.HandleFunc("/hosts", http.HandlerFunc(s.HostsFunc))
+	mux.HandleFunc("/pgs", http.HandlerFunc(s.PortGroupsFunc))
 	//mux.HandleFunc("/nets", http.HandlerFunc(s.NetsFunc))
 	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(s.port), mux))
 }

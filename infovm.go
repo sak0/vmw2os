@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	
 	"github.com/vmware/govmomi"
@@ -68,11 +69,14 @@ func (info *InfoVMware)GetHosts(ctx context.Context, c *govmomi.Client)([]mo.Hos
 
 	var hss []mo.HostSystem
 	fmt.Printf("Got hosts...\n")
-	err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"summary"}, &hss)
+	start := time.Now()
+	err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"config.network.portgroup", "summary"}, &hss)
 	//err = v.Retrieve(ctx, []string{"HostSystem"}, nil, &hss)
+	//err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"summary"}, &hss)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("List HostSystem spend %v.\n", time.Since(start))
 	return hss, nil
 }
 

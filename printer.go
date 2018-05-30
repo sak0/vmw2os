@@ -30,9 +30,9 @@ func (cmd *CmdInterface)Display(){
 		fmt.Fprintf(tw, "%d\t", hs.Summary.QuickStats.OverallCpuUsage)
 		fmt.Fprintf(tw, "%d\t", totalCPU)
 		fmt.Fprintf(tw, "%d\t", freeCPU)
-		fmt.Fprintf(tw, "%d\t", units.ByteSize(hs.Summary.QuickStats.OverallMemoryUsage))
-		fmt.Fprintf(tw, "%d\t", units.ByteSize(hs.Summary.Hardware.MemorySize) / 1024 / 1024)
-		fmt.Fprintf(tw, "%d\t", units.ByteSize(freeMemory) / 1024 / 1024)
+		fmt.Fprintf(tw, "%d\t", units.ByteSize(hs.Summary.QuickStats.OverallMemoryUsage) * 1024 * 1024)
+		fmt.Fprintf(tw, "%d\t", units.ByteSize(hs.Summary.Hardware.MemorySize))
+		fmt.Fprintf(tw, "%d\t", units.ByteSize(freeMemory))
 		fmt.Fprintf(tw, "\n")
 		if hs.Config != nil && hs.Config.Network != nil {
 			for _, pg := range hs.Config.Network.Portgroup {
