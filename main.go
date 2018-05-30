@@ -6,6 +6,9 @@ import (
 	"flag"
 	"log"
 	"net/url"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/vmware/govmomi"
@@ -91,8 +94,9 @@ func main(){
 	
 	
 	/* Publisher:  vminfo
-	   Subscriber: cmd, srv */  
-	vminfo := vmwinfo.NewInfoVMware("test", ctx, c, *period)
+	   Subscriber: cmd, srv */ 
+	stopC := make(chan string)    
+	vminfo := vmwinfo.NewInfoVMware("test", ctx, c, *period, stopC)
 	
 	var cmd = CmdInterface{}
 	srv := httpapi.NewServer(srvport)
@@ -102,5 +106,16 @@ func main(){
 	vminfo.Run()
 	
 	cmd.Display()
-	srv.Run()
+	go srv.Run()
+	
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
+	for sig := range sc{
+		switch sig {
+			case syscall.SIGTERM:
+				close(stopC)
+				time.Sleep(1 * time.Second)
+				return
+		}
+	}
 }

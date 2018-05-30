@@ -139,13 +139,13 @@ func (info *InfoVMware)Run(){
 	}()
 }
 
-func NewInfoVMware(name string, ctx context.Context, client *govmomi.Client, period time.Duration)*InfoVMware{
+func NewInfoVMware(name string, ctx context.Context, client *govmomi.Client, period time.Duration, stopC chan string)*InfoVMware{
 	return &InfoVMware{
 		Name: 			name,
 		ctx:  			ctx,
 		client: 		client,
 		period: 		period,
 		updateC:		make(chan Info),
-		stopC:			make(chan string),
+		stopC:			stopC,
 	}
 }
