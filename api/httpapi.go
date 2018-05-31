@@ -13,6 +13,8 @@ import (
 	vmwinfo "github.com/sak0/vmw2os/vmwinfo"
 )
 
+var SingleSrv = new(Server)
+
 type Server struct {
 	port	int
 	Vchosts []mo.HostSystem
@@ -20,9 +22,12 @@ type Server struct {
 }
 
 func NewServer(port int)*Server{
-	return &Server{
-		port: port,
+	if SingleSrv.port == 0 {
+		SingleSrv = &Server{
+			port : port,
+		}
 	}
+	return SingleSrv
 }
 
 func (s *Server)TestFunc(w http.ResponseWriter, r *http.Request){
