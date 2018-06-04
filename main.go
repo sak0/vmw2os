@@ -100,6 +100,7 @@ func main(){
 	
 	var cmd = CmdInterface{}
 	srv := httpapi.NewServer(srvport)
+	srv = httpapi.NewServer(9999)
 	
 	vminfo.AddReceiver(&cmd)
 	vminfo.AddReceiver(srv)

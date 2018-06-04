@@ -19,6 +19,7 @@ type Server struct {
 	port	int
 	Vchosts []mo.HostSystem
 	Vcnets  []mo.Network
+	Vcdss   []mo.Datastore
 }
 
 func NewServer(port int)*Server{
@@ -37,6 +38,7 @@ func (s *Server)TestFunc(w http.ResponseWriter, r *http.Request){
 func (s *Server)Update(info vmwinfo.Info){
 	s.Vchosts = info.Hosts
 	s.Vcnets  = info.Nets
+	s.Vcdss   = info.Dss
 }
 
 func (s *Server)HostsFunc(w http.ResponseWriter, r *http.Request){
@@ -84,11 +86,30 @@ func (s *Server)PortGroupsFunc(w http.ResponseWriter, r *http.Request){
 	tw.Flush()
 }
 
+func (s *Server)DataStoreFunc(w http.ResponseWriter, r *http.Request){
+	if s.Vcdss == nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "There is no datastores collected yet.\n")
+		return
+	}
+	tw := new(tabwriter.Writer).Init(w, 0, 8, 2, ' ', 0)
+	fmt.Fprintf(tw, "Name\tType\tCapacity\tFree\t\n")
+	for _, ds := range s.Vcdss {
+		fmt.Fprintf(tw, "%s\t", ds.Summary.Name)
+		fmt.Fprintf(tw, "%s\t", ds.Summary.Type)
+		fmt.Fprintf(tw, "%d\t", units.ByteSize(ds.Summary.Capacity))
+		fmt.Fprintf(tw, "%d\t", units.ByteSize(ds.Summary.FreeSpace))
+		fmt.Fprintf(tw, "\n")
+	}
+	tw.Flush()
+}
+
 func (s *Server)Run(){
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test", http.HandlerFunc(s.TestFunc))
 	mux.HandleFunc("/hosts", http.HandlerFunc(s.HostsFunc))
 	mux.HandleFunc("/pgs", http.HandlerFunc(s.PortGroupsFunc))
+	mux.HandleFunc("/dss", http.HandlerFunc(s.DataStoreFunc))
 	//mux.HandleFunc("/nets", http.HandlerFunc(s.NetsFunc))
 	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(s.port), mux))
 }

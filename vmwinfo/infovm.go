@@ -39,6 +39,7 @@ type InfoVMware struct {
 type Info struct {
 	Hosts []mo.HostSystem
 	Nets  []mo.Network
+	Dss   []mo.Datastore
 }
 
 func (info *InfoVMware)AddReceiver(r Receiver){
@@ -54,8 +55,29 @@ func (info *InfoVMware)RemoveReceiver(r Receiver){
 	}
 }
 
-func (info *InfoVMware)BroadCast(){
+func (info *InfoVMware)BroadCast(){}
+
+func (info *InfoVMware)GetDss(ctx context.Context, c *govmomi.Client)([]mo.Datastore, error){
+	m := view.NewManager(c.Client)
+	v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"Datastore"}, true)
+	if err != nil {
+		return nil, err
+	}
+	defer v.Destroy(ctx)
+
+	var dss []mo.Datastore
+	fmt.Printf("<GetDss %v> Got datastores...\n", time.Now())
+	start := time.Now()
+	err = v.Retrieve(ctx, []string{"Datastore"}, []string{"summary"}, &dss)
+	//err = v.Retrieve(ctx, []string{"HostSystem"}, nil, &hss)
+	//err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"summary"}, &hss)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("<GetDss %v>List Datastore spend %v.\n",time.Now(),  time.Since(start))
+	return dss, nil
 }
+
 
 func (info *InfoVMware)GetHosts(ctx context.Context, c *govmomi.Client)([]mo.HostSystem, error){
 	m := view.NewManager(c.Client)
@@ -104,9 +126,14 @@ func (info *InfoVMware)Collect()Info{
 	if err != nil{
 		log.Fatal(err)
 	}
+	dss, err := info.GetDss(info.ctx, info.client)
+	if err != nil{
+		log.Fatal(err)
+	}
 	return Info{
 		Hosts : hss,
 		Nets  : nets,
+		Dss   : dss,
 	}
 }
 
