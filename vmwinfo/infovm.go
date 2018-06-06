@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -40,6 +39,7 @@ type Info struct {
 	Hosts []mo.HostSystem
 	Nets  []mo.Network
 	Dss   []mo.Datastore
+	Vms   []mo.VirtualMachine
 }
 
 func (info *InfoVMware)AddReceiver(r Receiver){
@@ -101,6 +101,7 @@ func (info *InfoVMware)GetHosts(ctx context.Context, c *govmomi.Client)([]mo.Hos
 }
 
 func (info *InfoVMware)GetNetworks(ctx context.Context, c *govmomi.Client)([]mo.Network, error){
+	
 	m := view.NewManager(c.Client)
 	v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"Network"}, true)
 	if err != nil {
@@ -109,12 +110,33 @@ func (info *InfoVMware)GetNetworks(ctx context.Context, c *govmomi.Client)([]mo.
 	defer v.Destroy(ctx)
 	
 	var networks []mo.Network
+	start := time.Now()
 	err = v.Retrieve(ctx, []string{"Network"}, nil, &networks)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("<GetNetworks %v>List Network spend %v.\n",time.Now(),  time.Since(start))
 	
 	return networks, nil
+}
+
+func (info *InfoVMware)GetVms(ctx context.Context, c *govmomi.Client)([]mo.VirtualMachine, error){
+	m := view.NewManager(c.Client)
+	v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"VirtualMachine"}, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer v.Destroy(ctx)
+	
+	var vms []mo.VirtualMachine
+	start := time.Now()
+	err = v.Retrieve(ctx, []string{"VirtualMachine"}, nil, &vms)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("<GetVms %v>List VirtualMachine spend %v.\n",time.Now(),  time.Since(start))
+	
+	return vms, nil
 }
 
 func (info *InfoVMware)Collect()Info{
@@ -130,10 +152,15 @@ func (info *InfoVMware)Collect()Info{
 	if err != nil{
 		log.Fatal(err)
 	}
+	vms, err := info.GetVms(info.ctx, info.client)
+	if err != nil{
+		log.Fatal(err)
+	}	
 	return Info{
 		Hosts : hss,
 		Nets  : nets,
 		Dss   : dss,
+		Vms   : vms,
 	}
 }
 

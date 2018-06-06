@@ -20,6 +20,7 @@ type Server struct {
 	Vchosts []mo.HostSystem
 	Vcnets  []mo.Network
 	Vcdss   []mo.Datastore
+	Vcvms   []mo.VirtualMachine
 }
 
 func NewServer(port int)*Server{
@@ -39,6 +40,7 @@ func (s *Server)Update(info vmwinfo.Info){
 	s.Vchosts = info.Hosts
 	s.Vcnets  = info.Nets
 	s.Vcdss   = info.Dss
+	s.Vcvms   = info.Vms
 }
 
 func (s *Server)HostsFunc(w http.ResponseWriter, r *http.Request){
@@ -104,12 +106,29 @@ func (s *Server)DataStoreFunc(w http.ResponseWriter, r *http.Request){
 	tw.Flush()
 }
 
+func (s *Server)VmFunc(w http.ResponseWriter, r *http.Request){
+	if s.Vcvms == nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "There is no vm collected yet.\n")
+		return
+	}
+	tw := new(tabwriter.Writer).Init(w, 0, 32, 2, ' ', 0)
+	fmt.Fprintf(tw, "Name\tGuestFullName\t\n")
+	for _, vm := range s.Vcvms {
+		fmt.Fprintf(tw, "%s\t", vm.Summary.Config.Name)
+		fmt.Fprintf(tw, "%s\t", vm.Summary.Config.GuestFullName)
+		fmt.Fprintf(tw, "\n")
+	}
+	tw.Flush()
+}
+
 func (s *Server)Run(){
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test", http.HandlerFunc(s.TestFunc))
 	mux.HandleFunc("/hosts", http.HandlerFunc(s.HostsFunc))
 	mux.HandleFunc("/pgs", http.HandlerFunc(s.PortGroupsFunc))
 	mux.HandleFunc("/dss", http.HandlerFunc(s.DataStoreFunc))
+	mux.HandleFunc("/vms",http.HandlerFunc(s.VmFunc))
 	//mux.HandleFunc("/nets", http.HandlerFunc(s.NetsFunc))
 	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(s.port), mux))
 }
