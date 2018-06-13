@@ -130,7 +130,7 @@ func (info *InfoVMware)GetVms(ctx context.Context, c *govmomi.Client)([]mo.Virtu
 	
 	var vms []mo.VirtualMachine
 	start := time.Now()
-	err = v.Retrieve(ctx, []string{"VirtualMachine"}, nil, &vms)
+	err = v.Retrieve(ctx, []string{"VirtualMachine"}, []string{"summary"}, &vms)
 	if err != nil {
 		log.Fatal(err)
 	}

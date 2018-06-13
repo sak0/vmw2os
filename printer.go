@@ -57,5 +57,7 @@ func (cmd *CmdInterface)Display(){
 }
 
 func (cmd *CmdInterface)DisplayRaw(){
-	fmt.Printf("%v\n", cmd.Vms)
+	for _, vm := range cmd.Vms{
+		fmt.Printf("%v\n", vm)
+	}
 }

@@ -107,8 +107,8 @@ func main(){
 	vminfo.AddReceiver(srv)
 	vminfo.Run()
 	
-	time.Sleep(1 * time.Second)
-	cmd.DisplayRaw()
+	//time.Sleep(1 * time.Second)
+	//cmd.DisplayRaw()
 	go srv.Run()
 	
 	sc := make(chan os.Signal, 1)
