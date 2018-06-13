@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	//"sync"
 	"time"
 
 	"github.com/vmware/govmomi"
@@ -98,15 +99,16 @@ func main(){
 	stopC := make(chan string)    
 	vminfo := vmwinfo.NewInfoVMware("test", ctx, c, *period, stopC)
 	
-	var cmd = CmdInterface{}
+	var cmd = new(CmdInterface)
 	srv := httpapi.NewServer(srvport)
 	srv = httpapi.NewServer(9999)
 	
-	vminfo.AddReceiver(&cmd)
+	vminfo.AddReceiver(cmd)
 	vminfo.AddReceiver(srv)
 	vminfo.Run()
 	
-	cmd.Display()
+	time.Sleep(1 * time.Second)
+	cmd.DisplayRaw()
 	go srv.Run()
 	
 	sc := make(chan os.Signal, 1)

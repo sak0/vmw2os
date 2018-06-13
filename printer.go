@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"text/tabwriter"
+	"sync"
 	
 	"github.com/vmware/govmomi/units"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -14,16 +15,26 @@ import (
 type CmdInterface struct{
 	Hosts []mo.HostSystem
 	Nets  []mo.Network
+	Dss   []mo.Datastore
+	Vms   []mo.VirtualMachine
+	mu    sync.Mutex
 }
 
 func (cmd *CmdInterface)Update(info vmwinfo.Info){
+	cmd.mu.Lock()
+	defer cmd.mu.Unlock()
+	
 	cmd.Hosts = info.Hosts
 	cmd.Nets  = info.Nets
+	cmd.Dss   = info.Dss
+	cmd.Vms   = info.Vms
 }
 
 func (cmd *CmdInterface)Display(){
 	tw := new(tabwriter.Writer).Init(os.Stdout, 0, 8, 2, ' ', 0)
 	fmt.Fprintf(tw, "Name:\tUsed CPU:\tTotal CPU:\tFree CPU:\tUsed Memory:\tTotal Memory:\tFree Memory:\t\n")
+	cmd.mu.Lock()
+	defer cmd.mu.Unlock()
 	for _, hs := range cmd.Hosts {
 		totalCPU := int64(hs.Summary.Hardware.CpuMhz) * int64(hs.Summary.Hardware.NumCpuCores)
 		freeCPU := int64(totalCPU) - int64(hs.Summary.QuickStats.OverallCpuUsage)
@@ -43,4 +54,8 @@ func (cmd *CmdInterface)Display(){
 		}
 	}
 	_ = tw.Flush()
+}
+
+func (cmd *CmdInterface)DisplayRaw(){
+	fmt.Printf("%v\n", cmd.Vms)
 }

@@ -165,19 +165,6 @@ func (info *InfoVMware)Collect()Info{
 }
 
 func (info *InfoVMware)Run(){
-	ticker := time.NewTicker(info.period)
-	go func(){
-		for {
-			select {
-				case <-ticker.C:
-					fmt.Printf("<RunLoop %v>Collect hosts and networks info.\n", time.Now())
-					info.updateC <- info.Collect()
-				case <-info.stopC:
-					return	
-			}	
-		}
-	}()
-	
 	go func(){
 		for {
 			select {
@@ -191,6 +178,23 @@ func (info *InfoVMware)Run(){
 			}
 		}
 	}()
+	
+	info.updateC <- info.Collect()
+	
+	ticker := time.NewTicker(info.period)
+	go func(){
+		for {
+			select {
+				case <-ticker.C:
+					fmt.Printf("<RunLoop %v>Collect hosts and networks info.\n", time.Now())
+					info.updateC <- info.Collect()
+				case <-info.stopC:
+					return	
+			}	
+		}
+	}()
+	
+
 }
 
 func NewInfoVMware(name string, ctx context.Context, client *govmomi.Client, period time.Duration, stopC chan string)*InfoVMware{
